@@ -23,7 +23,7 @@ public class JenkinsTest {
     public ResponseEntity<String> testJemkinsApi()
     {
         return ResponseEntity.ok("Jemkins running successfully.");
-    }4
+    }
     @GetMapping("jen")
     public ResponseEntity<String> testJenApi()
     {
