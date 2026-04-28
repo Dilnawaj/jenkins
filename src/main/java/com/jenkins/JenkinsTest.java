@@ -19,16 +19,7 @@ public class JenkinsTest {
     {
         return ResponseEntity.ok("Jenkins running successfully.");
     }
-    @GetMapping("jemkins")
-    public ResponseEntity<String> testJemkinsApi()
-    {
-        return ResponseEntity.ok("Jemkins running successfully.");
-    }
-    @GetMapping("jen")
-    public ResponseEntity<String> testJenApi()
-    {
-        return ResponseEntity.ok("Jen running successfully.");
-    }
+
 
 
 }
