@@ -273,112 +273,112 @@ public class UserServieImpl implements UserService {
             return new ResponseModel(ErrorConfig.unknownError(), HttpStatus.BAD_REQUEST);
         }
     }
-
-    @Scheduled(cron = "* */2 * * * *")
-    public void welcomeEmailToNewUser() throws ParseException {
-        try {
-
-            List<User> users = userRepo.getIdsOfUselessUsers();
-            users.stream().forEach(user -> {
-                Date expiryDate;
-                try {
-                    expiryDate = JavaHelper.dateStringToDate(user.getLinkExpiryDate());
-                    Integer minutes = JavaHelper.getDiffInMinutes(expiryDate, JavaHelper.getCurrentDate());
-                    if (minutes > 15) {
-                        userRepo.delete(user);
-
-                    }
-                } catch (ParseException e) {
-                    // TODO Auto-generated catch block
-                    logger.error("useless user", e);
-                }
-
-
-            });
-            users = userRepo.getIdsOfUselessAdmins();
-            users.stream().forEach(user -> {
-                Date expiryDate;
-                try {
-                    expiryDate = JavaHelper.dateStringToDate(user.getLinkExpiryDate());
-                    Integer minutes = JavaHelper.getDiffInMinutes(expiryDate, JavaHelper.getCurrentDate());
-                    if (minutes > 1440) {
-                        userRepo.delete(user);
-
-                    }
-                } catch (ParseException e) {
-                    // TODO Auto-generated catch block
-                    logger.error("useless admin", e);
-                }
-
-
-            });
-
-            List<WelcomeEmailModel> newUsers = userRepo.getIdsOfNewUsers();
-
-            newUsers.stream().forEach(e ->
-                    emailService.sendWelcomeEmailToUser(e.getUserName(), e.getEmail())
-            );
-
-            postRepo.updateRecommendationPost();
-
-
-            List<Post> posts = postRepo.findAllPostUnCheckedContent();
-            List<Post> newPosts = postRepo.findAllPostNewContent();
-
-            for (Post post : newPosts) {
-                post.setSusbscriberEmail(true);
-                Integer userId = post.getUser().getId();
-
-                List<Integer> subUserIds = subscribeRepo.findByBloggerUserId(userId);
-
-                for (Integer subUserId : subUserIds) {
-                    Optional<User> user = userRepo.findById(subUserId);
-                    emailService.sendNotificationEmail(user, post);
-                }
-
-                postRepo.save(post);
-            }
-
-            for (Post post : posts) {
-
-                String word = containsAbusiveWords(post.getTitle()) != null
-                        ? containsAbusiveWords(post.getTitle())
-                        : containsAbusiveWords(post.getContent());
-
-                if (word != null) {
-                    Integer userId = post.getUser().getId();
-                    Optional<User> userOpt = userRepo.findById(userId);
-                    User user = userOpt.get();
-                    user.setAbusiveWord(word);
-                    user.setAbusiveContentNo(user.getAbusiveContentNo() + 1);
-
-                    if (user.getAbusiveContentNo() == 1) {
-
-                        postService.warningPost(post.getPostId());
-                        emailService.sendEmailForBadWords(user, post);
-                        // send EMail
-                    } else if (user.getAbusiveContentNo() == 2) {
-                        // suspendUser
-                        List<Post> postsOfUser = postRepo.findByUser(user);
-                        List<Integer> postIds = postsOfUser.stream().map(p -> p.getPostId()).collect(Collectors.toList());
-
-                        postService.deletePost(postIds);
-
-                        user.setSuspendUser(true);
-
-                    }
-
-                    userRepo.save(user);
-                }
-            }
-            postRepo.updatePostUnCheckedContent();
-            userRepo.updateWelcomeStatus();
-            logger.info("close Job end");
-
-       } catch (Exception e) {
-            logger.error("closeJobs", e);
-        }
-    }
+//
+//    @Scheduled(cron = "* */2 * * * *")
+//    public void welcomeEmailToNewUser() throws ParseException {
+//        try {
+//
+//            List<User> users = userRepo.getIdsOfUselessUsers();
+//            users.stream().forEach(user -> {
+//                Date expiryDate;
+//                try {
+//                    expiryDate = JavaHelper.dateStringToDate(user.getLinkExpiryDate());
+//                    Integer minutes = JavaHelper.getDiffInMinutes(expiryDate, JavaHelper.getCurrentDate());
+//                    if (minutes > 15) {
+//                        userRepo.delete(user);
+//
+//                    }
+//                } catch (ParseException e) {
+//                    // TODO Auto-generated catch block
+//                    logger.error("useless user", e);
+//                }
+//
+//
+//            });
+//            users = userRepo.getIdsOfUselessAdmins();
+//            users.stream().forEach(user -> {
+//                Date expiryDate;
+//                try {
+//                    expiryDate = JavaHelper.dateStringToDate(user.getLinkExpiryDate());
+//                    Integer minutes = JavaHelper.getDiffInMinutes(expiryDate, JavaHelper.getCurrentDate());
+//                    if (minutes > 1440) {
+//                        userRepo.delete(user);
+//
+//                    }
+//                } catch (ParseException e) {
+//                    // TODO Auto-generated catch block
+//                    logger.error("useless admin", e);
+//                }
+//
+//
+//            });
+//
+//            List<WelcomeEmailModel> newUsers = userRepo.getIdsOfNewUsers();
+//
+//            newUsers.stream().forEach(e ->
+//                    emailService.sendWelcomeEmailToUser(e.getUserName(), e.getEmail())
+//            );
+//
+//            postRepo.updateRecommendationPost();
+//
+//
+//            List<Post> posts = postRepo.findAllPostUnCheckedContent();
+//            List<Post> newPosts = postRepo.findAllPostNewContent();
+//
+//            for (Post post : newPosts) {
+//                post.setSusbscriberEmail(true);
+//                Integer userId = post.getUser().getId();
+//
+//                List<Integer> subUserIds = subscribeRepo.findByBloggerUserId(userId);
+//
+//                for (Integer subUserId : subUserIds) {
+//                    Optional<User> user = userRepo.findById(subUserId);
+//                    emailService.sendNotificationEmail(user, post);
+//                }
+//
+//                postRepo.save(post);
+//            }
+//
+//            for (Post post : posts) {
+//
+//                String word = containsAbusiveWords(post.getTitle()) != null
+//                        ? containsAbusiveWords(post.getTitle())
+//                        : containsAbusiveWords(post.getContent());
+//
+//                if (word != null) {
+//                    Integer userId = post.getUser().getId();
+//                    Optional<User> userOpt = userRepo.findById(userId);
+//                    User user = userOpt.get();
+//                    user.setAbusiveWord(word);
+//                    user.setAbusiveContentNo(user.getAbusiveContentNo() + 1);
+//
+//                    if (user.getAbusiveContentNo() == 1) {
+//
+//                        postService.warningPost(post.getPostId());
+//                        emailService.sendEmailForBadWords(user, post);
+//                        // send EMail
+//                    } else if (user.getAbusiveContentNo() == 2) {
+//                        // suspendUser
+//                        List<Post> postsOfUser = postRepo.findByUser(user);
+//                        List<Integer> postIds = postsOfUser.stream().map(p -> p.getPostId()).collect(Collectors.toList());
+//
+//                        postService.deletePost(postIds);
+//
+//                        user.setSuspendUser(true);
+//
+//                    }
+//
+//                    userRepo.save(user);
+//                }
+//            }
+//            postRepo.updatePostUnCheckedContent();
+//            userRepo.updateWelcomeStatus();
+//            logger.info("close Job end");
+//
+//       } catch (Exception e) {
+//            logger.error("closeJobs", e);
+//        }
+//    }
 
 
     public String containsAbusiveWords(String content) {
