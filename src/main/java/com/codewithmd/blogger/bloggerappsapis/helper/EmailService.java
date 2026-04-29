@@ -11,6 +11,7 @@ import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 
+import java.io.InputStream;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -84,19 +85,24 @@ public class EmailService {
 		return sb.toString();
 	}
 
-	public String base64ToImage() {
 
-		String logobase64 = null;
-		try {
-			byte[] fileContent = FileUtils.readFileToByteArray(ResourceUtils.getFile("classpath:logo-xsm.png"));
-			if (fileContent != null) {
-				logobase64 = Base64.getEncoder().encodeToString(fileContent);
-			}
-		} catch (Exception e) {
+    public String base64ToImage() {
+        try {
+            InputStream is = getClass().getResourceAsStream("/logo-xsm.png");
 
-		}
-		return logobase64;
-	}
+            if (is == null) {
+                System.out.println("Logo file not found in classpath!");
+                return null;
+            }
+
+            byte[] fileContent = is.readAllBytes();
+            return Base64.getEncoder().encodeToString(fileContent);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 	@Async
 	public Boolean sendEmailForReset(User user) {
 
@@ -334,9 +340,26 @@ public class EmailService {
 			// Create a MimeBodyPart for the logo
 			MimeBodyPart logoPart = new MimeBodyPart();
 
-			// Decode the Base64 string to bytes
-			byte[] logoBytes = Base64.getDecoder().decode(logobase64);
 
+			// Decode the Base64 string to bytes
+
+
+            byte[] logoBytes =null;
+            if (logobase64 != null) {
+
+                logoBytes = Base64.getDecoder().decode(logobase64);
+
+
+                String contentID = ApiConstants.CONTENTID;
+
+                logoPart.setContentID("<" + contentID + ">");
+                logoPart.setContent(logoBytes, "image/png");
+
+                multipart.addBodyPart(logoPart);
+
+            } else {
+                System.out.println("Logo not found, skipping logo...");
+            }
 			// Set the content ID for the logo part
 			String contentID = ApiConstants.CONTENTID;
 			logoPart.setContentID("<" + contentID + ">");
@@ -371,7 +394,7 @@ public class EmailService {
 
 			return true;
 		} catch (Exception e) {
-
+e.printStackTrace();
 		}
 		return false;
 	}
