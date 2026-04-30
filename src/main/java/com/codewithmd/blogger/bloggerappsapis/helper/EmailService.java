@@ -433,7 +433,6 @@ e.printStackTrace();
 		});
 		try {
 			Message message = new MimeMessage(session);
-
             message.setHeader("X-Mailer", "JavaMail"); // ✅ add this
             message.setSentDate(new Date());
 			message.setRecipient(Message.RecipientType.TO, new InternetAddress(to));
