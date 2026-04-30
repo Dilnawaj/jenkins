@@ -309,8 +309,11 @@ public class EmailService {
 		try {
 			Message message = new MimeMessage(session);
 			message.setRecipient(Message.RecipientType.TO, new InternetAddress(to));
-			message.setFrom(new InternetAddress(fromName + " <" + fromEmail + ">"));
 
+            message.setFrom(new InternetAddress(from, "BloggerHub"));
+            message.setReplyTo(new Address[]{new InternetAddress(from)}); // ✅ add this
+            message.setSentDate(new Date()); // ✅ add this
+            message.setHeader("X-Mailer", "JavaMail"); // ✅ add this
 			// Set CC recipients if ccEmails list is not null or empty
 			if (ccEmails != null && !ccEmails.isEmpty()) {
 				Address[] ccAddresses = new Address[ccEmails.size()];
@@ -430,10 +433,13 @@ e.printStackTrace();
 		});
 		try {
 			Message message = new MimeMessage(session);
+
+            message.setHeader("X-Mailer", "JavaMail"); // ✅ add this
+            message.setSentDate(new Date());
 			message.setRecipient(Message.RecipientType.TO, new InternetAddress(to));
-			message.setFrom(new InternetAddress(from,"BloggerHub" + " <" + from + ">"));
 
-
+            message.setFrom(new InternetAddress(from, "BloggerHub"));
+            message.setReplyTo(new Address[]{new InternetAddress(from)});
 			// Set CC recipients if ccEmails list is not null or empty
 			if (ccEmails != null && !ccEmails.isEmpty()) {
 				Address[] ccAddresses = new Address[ccEmails.size()];
