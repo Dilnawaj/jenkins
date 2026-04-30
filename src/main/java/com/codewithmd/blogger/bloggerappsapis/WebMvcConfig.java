@@ -15,23 +15,21 @@ import com.codewithmd.blogger.bloggerappsapis.account.service.CustomRequestInter
 @EnableWebMvc
 public class WebMvcConfig implements WebMvcConfigurer {
 
-	@Autowired
-	private CustomRequestInterceptor customRequestInterceptor;
-	
-	@Value("${allowedOrigins}")
-	private String allowedOrigins;
-	
-	
-	@Override
-	public void addInterceptors(InterceptorRegistry registry) {
-		registry.addInterceptor(customRequestInterceptor);
-	}
-	
-	@Override
-	public void addCorsMappings(CorsRegistry registry) {
-		registry.addMapping("/**")
-				.allowedMethods(RequestMethod.GET.toString(), RequestMethod.POST.toString(),
-						RequestMethod.PUT.toString(), RequestMethod.PATCH.toString(), RequestMethod.DELETE.toString())
-				.allowedOrigins(allowedOrigins.split(","));
-	}
+    @Autowired
+    private CustomRequestInterceptor customRequestInterceptor;
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(customRequestInterceptor);
+    }
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOriginPatterns("*")        // ✅ allows all origins
+                .allowedMethods("GET", "POST", "PUT",
+                        "PATCH", "DELETE", "OPTIONS")  // ✅ OPTIONS added
+                .allowedHeaders("*")
+                .allowCredentials(true);
+    }
 }
