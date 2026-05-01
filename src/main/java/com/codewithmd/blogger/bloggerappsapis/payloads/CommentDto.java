@@ -7,7 +7,8 @@ public class CommentDto {
 	private String comment;
 	
 	private String userName;
-	
+
+    private String userImage;
 
 	public int getId() {
 		return id;
@@ -33,6 +34,11 @@ public class CommentDto {
 		this.userName = userName;
 	}
 
+    public String getUserImage() {
+        return userImage;
+    }
 
-
+    public void setUserImage(String userImage) {
+        this.userImage = userImage;
+    }
 }

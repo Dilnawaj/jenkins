@@ -235,11 +235,7 @@ public class PostController {
 	public void downloadImage(@PathVariable("imageName") String imageName, HttpServletResponse response)
 			throws IOException {
 		logger.info("This is an informational log message");
-System.out.println("Image Name "+imageName);
 		InputStream resource = this.fileService.getResource(path, imageName);
-        System.out.println("Path Name "+path);
-        System.out.println("Resources Name "+resource);
-        System.out.println("Response  "+response.getOutputStream());
 		logger.error("This is an error log message");
 		response.setContentType(MediaType.IMAGE_JPEG_VALUE);
 		StreamUtils.copy(resource, response.getOutputStream());

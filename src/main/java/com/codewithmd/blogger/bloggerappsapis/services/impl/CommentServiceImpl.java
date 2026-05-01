@@ -50,6 +50,7 @@ public class CommentServiceImpl implements CommentService {
 			commentRepo.save(comment);
 			commentDto=this.modelMapper.map(comment, CommentDto.class);
 			commentDto.setUserName(user.get().getName());
+            commentDto.setUserImage(user.get().getImageName());
 			return new ResponseModel( commentDto, HttpStatus.CREATED);
 		} catch (Exception e) {
 			logger.error("createComment ", e);
