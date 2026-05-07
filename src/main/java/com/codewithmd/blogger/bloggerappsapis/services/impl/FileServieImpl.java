@@ -22,6 +22,10 @@ public class FileServieImpl implements FileService {
 	public String uploadImage(String path, MultipartFile file, Integer postId, String imageName) throws IOException {
 		// File name
 		String name = file.getOriginalFilename();
+        if("".equals( name) || name==null)
+        {
+            return "default.PNG";
+        }
 		String randomId;
 		if (imageName != null) {
 			randomId = imageName;
