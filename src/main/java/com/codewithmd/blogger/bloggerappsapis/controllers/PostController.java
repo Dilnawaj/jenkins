@@ -229,18 +229,18 @@ public class PostController {
 			return new ResponseEntity<>(ErrorConfig.unknownError(), HttpStatus.OK);
 		}
 	}
-
-	@CrossOrigin
-	@GetMapping(value = "/image/{imageName}", produces = MediaType.IMAGE_JPEG_VALUE)
-	public void downloadImage(@PathVariable("imageName") String imageName, HttpServletResponse response)
-			throws IOException {
-		logger.info("This is an informational log message");
-		InputStream resource = this.fileService.getResource(path, imageName);
-		logger.error("This is an error log message");
-		response.setContentType(MediaType.IMAGE_JPEG_VALUE);
-		StreamUtils.copy(resource, response.getOutputStream());
-
-	}
+//    @Deprecated
+//	@CrossOrigin
+//	@GetMapping(value = "/image/{imageName}", produces = MediaType.IMAGE_JPEG_VALUE)
+//	public void downloadImage(@PathVariable("imageName") String imageName, HttpServletResponse response)
+//			throws IOException {
+//		logger.info("This is an informational log message");
+//		InputStream resource = this.fileService.getResource(path, imageName);
+//		logger.error("This is an error log message");
+//		response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+//		StreamUtils.copy(resource, response.getOutputStream());
+//
+//	}
 
 	@CrossOrigin
 	@PostMapping(value = "/subscribe/user/{currentSubsciberId}/{bloggerUserId}", produces = "application/json; charset=utf-8")
