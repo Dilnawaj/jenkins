@@ -42,6 +42,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.*;
 import java.nio.file.*;
@@ -58,8 +61,11 @@ public class PostController {
 	@Autowired
 	private FileService fileService;
 
-	@Value("${project.image}")
-	private String path;
+    @Value("${aws.s3.bucket-name}")
+    private String bucketName;
+
+    @Autowired
+    private S3Client s3Client;
 
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -219,7 +225,7 @@ public class PostController {
 		String fileName = null;
 		try {
 			ResponseObjectModel responseObjectModel = this.postService.getPostById(postId);
-			fileName = this.fileService.uploadImage(path, image, postId, imageName);
+			fileName = this.fileService.uploadImage(null, image, postId, imageName);
 			PostDto postDto = (PostDto) responseObjectModel.getResponse();
 			postDto.setImageName(fileName);
 			this.postService.updatePost(postDto);
@@ -279,48 +285,60 @@ public class PostController {
 		ResponseObjectModel response = this.postService.reportPostFeed(postId, userId);
 		return new ResponseEntity<>(response.getResponse().toString(), response.getResponseCode());
 	}
+    @GetMapping("/download-all")
+    public ResponseEntity<InputStreamResource> downloadAllImages() {
+        try {
+            // List all objects in S3 bucket under blog-images/
+            ListObjectsV2Request listRequest = ListObjectsV2Request.builder()
+                    .bucket(bucketName)
+                    .prefix("blog-images/")
+                    .build();
 
-	@GetMapping("/download-all")
-	public ResponseEntity<InputStreamResource> downloadAllImages() {
-		try {
-			Path directoryPath = Paths.get(path);
-			if (!Files.exists(directoryPath)) {
-				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Directory not found");
-			}
+            ListObjectsV2Response listResponse = s3Client.listObjectsV2(listRequest);
 
-			// Create a temporary zip file
-			File zipFile = File.createTempFile("images-", ".zip");
+            if (listResponse.contents().isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No images found in S3");
+            }
 
-			try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(zipFile))) {
-				Files.walk(directoryPath)
-						.filter(Files::isRegularFile)
-						.filter(path -> path.toString().matches(".*\\.(jpg|jpeg|PNG|png|gif)$"))
-						.forEach(path -> {
-							try {
-								// Add file to zip
-								zipOutputStream.putNextEntry(new ZipEntry(path.getFileName().toString()));
-								Files.copy(path, zipOutputStream);
-								zipOutputStream.closeEntry();
-							} catch (IOException e) {
-								throw new RuntimeException("Error while zipping file: " + path, e);
-							}
-						});
-			}
+            // Create a temporary zip file
+            File zipFile = File.createTempFile("images-", ".zip");
 
-			// Return zip file as response
-			InputStreamResource resource = new InputStreamResource(new FileInputStream(zipFile));
+            try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(zipFile))) {
+                for (S3Object s3Object : listResponse.contents()) {
+                    String key = s3Object.key();
+                    String fileName = key.substring(key.lastIndexOf("/") + 1); // extract filename
 
-			return ResponseEntity.ok()
-					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"images.zip\"")
-					.header(HttpHeaders.CONTENT_TYPE, "application/zip")
-					.contentLength(zipFile.length())
-					.body(resource);
+                    // Skip if not an image
+                    if (!fileName.matches(".*\\.(jpg|jpeg|png|PNG|gif)$")) continue;
 
-		} catch (IOException e) {
-			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create zip file", e);
-		}
-	}
+                    // Download from S3
+                    GetObjectRequest getRequest = GetObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(key)
+                            .build();
 
+                    ResponseInputStream<GetObjectResponse> s3ObjectStream = s3Client.getObject(getRequest);
+
+                    // Add to zip
+                    zipOutputStream.putNextEntry(new ZipEntry(fileName));
+                    StreamUtils.copy(s3ObjectStream, zipOutputStream);
+                    zipOutputStream.closeEntry();
+                }
+            }
+
+            // Return zip as response
+            InputStreamResource resource = new InputStreamResource(new FileInputStream(zipFile));
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"images.zip\"")
+                    .header(HttpHeaders.CONTENT_TYPE, "application/zip")
+                    .contentLength(zipFile.length())
+                    .body(resource);
+
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create zip file", e);
+        }
+    }
 
 //	@CrossOrigin
 //	@GetMapping(value = "/save/category/{categoryId}/user/{userId}", produces = "application/json; charset=utf-8")

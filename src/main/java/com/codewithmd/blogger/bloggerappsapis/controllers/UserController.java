@@ -40,8 +40,6 @@ public class UserController {
 	@Autowired
 	private FileService fileService;
 
-	@Value("${project.image}")
-	private String path;
 
 	// POST-> create User
 
@@ -105,7 +103,7 @@ public class UserController {
 		String fileName = null;
 		try {
 			ResponseObjectModel responseObjectModel = this.userService.getUserById(userId);
-			fileName = this.fileService.uploadImage(path, image, userId, imageName);
+			fileName = this.fileService.uploadImage(null, image, userId, imageName);
 			UserDto userDto = (UserDto) responseObjectModel.getResponse();
 			userDto.setImageName(fileName);
 			this.userService.updateUser(userDto);

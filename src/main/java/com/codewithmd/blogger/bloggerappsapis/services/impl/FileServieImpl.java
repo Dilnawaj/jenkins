@@ -30,7 +30,7 @@ public class FileServieImpl implements FileService {
     private S3Client s3Client;
 	@Override
     public String uploadImage(String path, MultipartFile file,
-                              Integer postId, String imageName) throws IOException {
+                              Integer id, String imageName) throws IOException {
         String name = file.getOriginalFilename();
         if (name == null || name.equals("")) {
             return "default.PNG";
@@ -38,7 +38,7 @@ public class FileServieImpl implements FileService {
 
         String randomId = (imageName != null) ? imageName : UUID.randomUUID().toString();
         String fileName = randomId.concat(name.substring(name.lastIndexOf(".")));
-        String s3Key = "blog-images/" + fileName;
+        String s3Key = "blog-images/" + fileName;  // path ignored, using S3 key
 
         PutObjectRequest putRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
@@ -48,9 +48,8 @@ public class FileServieImpl implements FileService {
 
         s3Client.putObject(putRequest, RequestBody.fromBytes(file.getBytes()));
 
-        // Return full S3 public URL
+        // Returns full S3 URL instead of just filename
         return "https://" + bucketName + ".s3.amazonaws.com/" + s3Key;
     }
-
 
 }
