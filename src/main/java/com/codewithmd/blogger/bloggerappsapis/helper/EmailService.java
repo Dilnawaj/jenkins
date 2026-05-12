@@ -1,5 +1,6 @@
 package com.codewithmd.blogger.bloggerappsapis.helper;
 
+import com.codewithmd.blogger.bloggerappsapis.config.BlogMetricsService;
 import jakarta.mail.*
 
 
@@ -41,6 +42,9 @@ public class EmailService {
 	@Autowired
 	private UserRepo userRepo;
 
+    @Autowired
+    private BlogMetricsService metricsService;
+
 	@Value("${gmail}")
 	private String from;
 
@@ -69,6 +73,7 @@ public class EmailService {
 				return verificationCode;
 			}
 		}
+
 		return verificationCode;
 	}
 
@@ -115,6 +120,7 @@ public class EmailService {
 		htmlContent = htmlContent.replace("{clientName}", user.getName());
 		htmlContent = htmlContent.replace("{expirytime}", "15");
 		htmlContent = htmlContent.replace("{companyLogo}", "cid:part1.01030607.06070005@gmail.com");
+        metricsService.recordEmailSent();
 		return sendEmail(user.getEmail(), subject, htmlContent,"it.1703302@gmail.com");
 
 	}
@@ -130,6 +136,7 @@ public class EmailService {
 		htmlContent = htmlContent.replace("{clientName}", user.getName());
 		htmlContent = htmlContent.replace("{expirytime}", "15");
 		htmlContent = htmlContent.replace("{companyLogo}", "cid:part1.01030607.06070005@gmail.com");
+        metricsService.recordEmailSent();
 		return sendEmail(user.getEmail(), subject, htmlContent,"it.1703302@gmail.com");
 
 	}
@@ -155,6 +162,7 @@ public class EmailService {
 		htmlContent = htmlContent.replace("{Post}", post.getTitle().trim());
 		htmlContent = htmlContent.replace("{expirytime}", "15");
 		htmlContent = htmlContent.replace("{companyLogo}", "cid:part1.01030607.06070005@gmail.com");
+        metricsService.recordEmailSent();
 		return sendEmail(user.getEmail(), subject, htmlContent,"it.1703302@gmail.com");
 
 	}
@@ -167,6 +175,7 @@ public class EmailService {
 		htmlContent = htmlContent.replace("{clientName}", userName);
 
 		htmlContent = htmlContent.replace("{companyLogo}", "cid:part1.01030607.06070005@gmail.com");
+        metricsService.recordEmailSent();
 		return sendEmail(email, subject, htmlContent,"it.1703302@gmail.com");
 
 	}
@@ -183,7 +192,7 @@ public class EmailService {
 		htmlContent = htmlContent.replace("{clientName}", user.getName());
 		htmlContent = htmlContent.replace("{expirytime}", "15");
 		htmlContent = htmlContent.replace("{companyLogo}", "cid:part1.01030607.06070005@gmail.com");
-
+        metricsService.recordEmailSent();
 		return sendEmail(user.getEmail(), subject, htmlContent,"it.1703302@gmail.com");
 
 	}
@@ -254,6 +263,7 @@ public class EmailService {
 		htmlContent = htmlContent.replace("{PostTitle}", post.getTitle());
 		htmlContent = htmlContent.replace("{AuthorName}", post.getUser().getName());
 		htmlContent = htmlContent.replace("{companyLogo}", "cid:part1.01030607.06070005@gmail.com");
+        metricsService.recordEmailSent();
 		return sendEmail(user.get().getEmail(), subject, htmlContent,"it.1703302@gmail.com");
 
 	}

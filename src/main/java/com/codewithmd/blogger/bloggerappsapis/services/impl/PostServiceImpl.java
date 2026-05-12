@@ -1,5 +1,6 @@
 package com.codewithmd.blogger.bloggerappsapis.services.impl;
 
+import com.codewithmd.blogger.bloggerappsapis.config.BlogMetricsService;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -84,6 +85,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 public class PostServiceImpl implements PostService {
 
+    @Autowired
+    private BlogMetricsService metricsService;
+
 	@Autowired
 	private CategoryRepo categoryRepo;
 
@@ -133,7 +137,7 @@ public class PostServiceImpl implements PostService {
 			post.setSusbscriberEmail(false);
 			this.postRepo.save(post);
 			postDto = this.modelMapper.map(post, PostDto.class);
-
+            metricsService.recordPostCreated();
 			return new ResponseModel(postDto, HttpStatus.OK);
 		} catch (Exception e) {
 			logger.error("createCategory ", e);
@@ -166,6 +170,7 @@ public class PostServiceImpl implements PostService {
 				post.setCategory(category.get());
 				this.postRepo.save(post);
 				clearCache("saved");
+
 				return new ResponseModel(ErrorConfig.updateMessage("Post"), HttpStatus.ACCEPTED);
 			} else {
 				return new ResponseModel(ErrorConfig.updateError("Post"), HttpStatus.BAD_REQUEST);
@@ -184,7 +189,8 @@ public class PostServiceImpl implements PostService {
 				clearCache("saved");
 				commentRepo.deleteAll(this.commentRepo.findByPost(post.get()));
 				this.postRepo.deleteById(post.get().getPostId());
-				return new ResponseModel(ErrorConfig.deleteMessage("Post", postId.toString()), HttpStatus.OK);
+                metricsService.recordPostDeleted();
+                return new ResponseModel(ErrorConfig.deleteMessage("Post", postId.toString()), HttpStatus.OK);
 			} else {
 				return new ResponseModel(ErrorConfig.notFoundException("Post", postId.toString()),
 						HttpStatus.NOT_FOUND);

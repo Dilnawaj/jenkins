@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+
+import com.codewithmd.blogger.bloggerappsapis.config.BlogMetricsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +68,9 @@ public class PostController {
 
     @Autowired
     private S3Client s3Client;
+
+    @Autowired
+    private BlogMetricsService metricsService;
 
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -224,11 +229,13 @@ public class PostController {
 			@RequestParam ( required = false) String imageName) {
 		String fileName = null;
 		try {
+            long start = System.currentTimeMillis();
 			ResponseObjectModel responseObjectModel = this.postService.getPostById(postId);
 			fileName = this.fileService.uploadImage(null, image, postId, imageName);
 			PostDto postDto = (PostDto) responseObjectModel.getResponse();
 			postDto.setImageName(fileName);
 			this.postService.updatePost(postDto);
+            metricsService.recordUploadTime(System.currentTimeMillis() - start);
 			return new ResponseEntity<>(ErrorConfig.updateMessage("Profile Image"), HttpStatus.OK);
 		} catch (Exception e) {
 			logger.error("uploadImage ", e);

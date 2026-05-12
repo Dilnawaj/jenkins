@@ -12,6 +12,7 @@ import java.util.Optional;
 
 import com.codewithmd.blogger.bloggerappsapis.account.model.RoleModel;
 import com.codewithmd.blogger.bloggerappsapis.account.model.UserType;
+import com.codewithmd.blogger.bloggerappsapis.config.BlogMetricsService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -82,6 +83,9 @@ public class BloggerServiceImpl implements BloggerService {
 	@Autowired
 	private ModelMapper modelMapper;
 
+    @Autowired
+    private BlogMetricsService metricsService;
+
 	@Value("${clientId}")
 	private String clientId;
 
@@ -124,7 +128,8 @@ public class BloggerServiceImpl implements BloggerService {
 							user.setGoogleLoginCount(user.getGoogleLoginCount() + 1);
 							userRepo.save(user);
 						}
-						return getLoginModel(user, req.getRememberMe());
+                        metricsService.recordUserLogin();
+                        return getLoginModel(user, req.getRememberMe());
 					}
 				}
 			}

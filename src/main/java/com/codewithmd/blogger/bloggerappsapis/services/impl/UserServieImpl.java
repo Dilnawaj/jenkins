@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.io.IOException;
 
 import com.codewithmd.blogger.bloggerappsapis.account.model.RoleModel;
+import com.codewithmd.blogger.bloggerappsapis.config.BlogMetricsService;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.security.GeneralSecurityException;
@@ -84,8 +85,13 @@ public class UserServieImpl implements UserService {
     @Autowired
     private SubscribeRepo subscribeRepo;
 
+    @Autowired
+    private BlogMetricsService metricsService;
+
     @Value("${clientId}")
     private String clientId;
+
+
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -128,7 +134,7 @@ public class UserServieImpl implements UserService {
                 newRole.setClientId(Long.valueOf(user.getId()));
                 newRole.setRoleId(role.getRoleId());
                 clientRoleService.save(newRole);
-
+                metricsService.recordUserRegistered();
                 return new ResponseModel(ErrorConfig.addMessage("User"), HttpStatus.OK);
             }
             return new ResponseModel("Invalid credentials", HttpStatus.BAD_REQUEST, true);
@@ -274,7 +280,7 @@ public class UserServieImpl implements UserService {
         }
     }
 
-    @Scheduled(cron = "* */2 * * * *")
+ //   @Scheduled(cron = "* */2 * * * *")
     public void welcomeEmailToNewUser() throws ParseException {
         try {
 
