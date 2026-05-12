@@ -24,6 +24,7 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -118,6 +119,9 @@ public class PostServiceImpl implements PostService {
 	@Autowired
 	private CommentRepo commentRepo;
 
+    @Value("${aws.s3.bucket-name}")
+    private String bucketName;
+
 	@Autowired
 	private RedisTemplate<String, Object> redisTemplate;
 
@@ -130,7 +134,7 @@ public class PostServiceImpl implements PostService {
 			Post post = this.modelMapper.map(postDto, Post.class);
 			post.setDate(new Date());
 			post.setUser(user);
-            post.setImageName("default.PNG");
+            post.setImageName("https://" + bucketName + ".s3.amazonaws.com/"+"blog-images/default.PNG");
 			post.setCategory(category);
 			post.setPostId(idGenerator());
 			post.setPostContentChecked(false);
