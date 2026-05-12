@@ -92,6 +92,8 @@ public class UserServieImpl implements UserService {
     private String clientId;
 
 
+    @Value("${aws.s3.bucket-name}")
+    private String bucketName;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -113,7 +115,7 @@ public class UserServieImpl implements UserService {
 
                 user.setUserType(UserType.NORMAL_USER.toString());
 
-
+                    user.setImageName("https://" + bucketName + ".s3.amazonaws.com/"+"blog-images/profile.png");
                     user.setLinkExpiryDate(JavaHelper.getCurrentDate().toString());
                     user.setSuspendUser(false);
                     user.setPassword(null);
