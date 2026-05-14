@@ -31,7 +31,9 @@ public class MyApplicationRunner implements ApplicationRunner {
     private CategoryService categoryService;
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        System.out.println("ApplicationRunner executing at startup...");
+        System.out.println("ApplicationRunner executing at startup... boom boom");
+
+
         // Call repository method
        Optional<User> userOpt= userRepo.findByEmail("dilnawaj@gmail.com");
        if(userOpt.isEmpty())

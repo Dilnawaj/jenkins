@@ -24,6 +24,7 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -94,6 +95,10 @@ public class UserServieImpl implements UserService {
 
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
+
+
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 

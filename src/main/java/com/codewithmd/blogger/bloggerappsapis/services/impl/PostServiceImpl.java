@@ -140,6 +140,8 @@ public class PostServiceImpl implements PostService {
 			post.setPostContentChecked(false);
 			post.setSusbscriberEmail(false);
 			this.postRepo.save(post);
+            clearCache("saved");
+            clearCache("AllPost");
 			postDto = this.modelMapper.map(post, PostDto.class);
             metricsService.recordPostCreated();
 			return new ResponseModel(postDto, HttpStatus.OK);
@@ -174,7 +176,7 @@ public class PostServiceImpl implements PostService {
 				post.setCategory(category.get());
 				this.postRepo.save(post);
 				clearCache("saved");
-
+                clearCache("AllPost");
 				return new ResponseModel(ErrorConfig.updateMessage("Post"), HttpStatus.ACCEPTED);
 			} else {
 				return new ResponseModel(ErrorConfig.updateError("Post"), HttpStatus.BAD_REQUEST);
@@ -191,6 +193,7 @@ public class PostServiceImpl implements PostService {
 			if (!post.isEmpty()) {
 
 				clearCache("saved");
+                clearCache("AllPost");
 				commentRepo.deleteAll(this.commentRepo.findByPost(post.get()));
 				this.postRepo.deleteById(post.get().getPostId());
                 metricsService.recordPostDeleted();
@@ -333,7 +336,26 @@ public class PostServiceImpl implements PostService {
 		try {
 			Pageable p = PageRequest.of(pageNumber, ApiConstants.PAGE_SIZE);
 			Page<Post> pagePosts = new PageImpl<>(new ArrayList<>());
-	
+
+
+            String key = "AllPost";
+            try {
+
+                PostResponseModel redisData =
+                        (PostResponseModel) redisTemplate.opsForValue().get(key);
+                logger.info("Redis cache hit for key '{}': {}", key, redisData != null);
+
+                if (redisData != null && sortBy.equalsIgnoreCase("newest") && pageNumber == 0) {
+                    logger.info("Returning cached data from Redis");
+                    return new ResponseObjectModel(redisData, HttpStatus.OK);
+                }
+            } catch (Exception e) {
+                logger.error("Redis read failed for key '{}', falling back to DB: {}",
+                        key, e.getMessage());
+                // ✅ Continue to DB instead of crashing
+            }
+
+
 			if (sortBy != null && !"".equals(sortBy)) {
 				if (userId != null && sortBy.equalsIgnoreCase("Subscribers")) {
 					{
@@ -358,7 +380,17 @@ public class PostServiceImpl implements PostService {
 			postResponseModel.setTotalElements(pagePosts.getTotalElements());
 			postResponseModel.setTotalPages(pagePosts.getTotalPages());
 			postResponseModel.setLastPage(pagePosts.isLast());
-	
+            try {
+                if (postResponseModel.getTotalElements() != 0L
+                        && sortBy.equalsIgnoreCase("newest")
+                        && pageNumber == 0) {
+                    redisTemplate.opsForValue().set(key, postResponseModel, 100, TimeUnit.MINUTES);
+                    logger.info("Cached data in Redis with key '{}'", key);
+                }
+            } catch (Exception e) {
+                logger.error("Redis write failed for key '{}': {}", key, e.getMessage());
+                // ✅ Don't crash if Redis write fails
+            }
 			return new ResponseObjectModel(postResponseModel, HttpStatus.OK);
 		} catch (Exception e) {
 			logger.error("getAllPost ", e);
