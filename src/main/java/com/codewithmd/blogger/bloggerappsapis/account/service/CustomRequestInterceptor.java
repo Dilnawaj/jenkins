@@ -89,11 +89,28 @@ public class CustomRequestInterceptor implements HandlerInterceptor, Filter {
 			String method = request.getMethod();
 		
 
-			if (method.equalsIgnoreCase("OPTIONS") || requestUrl.contains("download-all")||requestUrl.contains("getall/")||requestUrl.contains("categ")||requestUrl.contains("image/")||requestUrl.contains("admin/account/")||requestUrl.contains("account/")||requestUrl.contains("background") || requestUrl.contains("webhook/")|| requestUrl.contains("/error")) {
-				return true;
-			}
-			
 
+            if (method.equalsIgnoreCase("OPTIONS")
+                    || requestUrl.contains("download-all")
+                    || requestUrl.contains("getall/")
+                    || requestUrl.contains("categ")
+                    || requestUrl.contains("image/")
+                    || requestUrl.contains("admin/account/")
+                    || requestUrl.contains("account/")        // ✅ already covers /user/account/login, signup
+                    || requestUrl.contains("background")
+                    || requestUrl.contains("webhook/")
+                    || requestUrl.contains("/error")
+                    || requestUrl.equals("/login")            // ✅ Add this
+                    || requestUrl.equals("/signup")           // ✅ Add this
+                    || requestUrl.equals("/resetpassword")    // ✅ Add this
+                    || requestUrl.equals("/")                 // ✅ Add this
+                    || requestUrl.startsWith("/static/")      // ✅ React static files
+                    || requestUrl.endsWith(".js")             // ✅ React JS bundles
+                    || requestUrl.endsWith(".css")            // ✅ React CSS files
+                    || requestUrl.endsWith(".ico")            // ✅ favicon
+            ) {
+                return true;
+            }
 			String accessToken = request.getHeader("accesstoken")!=null?request.getHeader("accesstoken"):request.getHeader("Accesstoken");
 
 

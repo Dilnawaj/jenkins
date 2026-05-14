@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class SpaController {
 
     @RequestMapping(value = {
-            "/{path:[^\\.]*}",
-            "/**/{path:[^\\.]*}"
+            "/login",
+            "/signup",
+            "/resetpassword",
+            "/{path:^(?!user|api|admin).*}/**"
     })
     public String forward() {
         return "forward:/index.html";
