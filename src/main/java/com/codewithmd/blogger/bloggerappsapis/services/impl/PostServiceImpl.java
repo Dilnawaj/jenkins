@@ -339,7 +339,6 @@ public class PostServiceImpl implements PostService {
 
 
             String key = "AllPost";
-            try {
 
                 PostResponseModel redisData =
                         (PostResponseModel) redisTemplate.opsForValue().get(key);
@@ -349,11 +348,7 @@ public class PostServiceImpl implements PostService {
                     logger.info("Returning cached data from Redis");
                     return new ResponseObjectModel(redisData, HttpStatus.OK);
                 }
-            } catch (Exception e) {
-                logger.error("Redis read failed for key '{}', falling back to DB: {}",
-                        key, e.getMessage());
-                // ✅ Continue to DB instead of crashing
-            }
+
 
 
 			if (sortBy != null && !"".equals(sortBy)) {
@@ -380,17 +375,13 @@ public class PostServiceImpl implements PostService {
 			postResponseModel.setTotalElements(pagePosts.getTotalElements());
 			postResponseModel.setTotalPages(pagePosts.getTotalPages());
 			postResponseModel.setLastPage(pagePosts.isLast());
-            try {
                 if (postResponseModel.getTotalElements() != 0L
                         && sortBy.equalsIgnoreCase("newest")
                         && pageNumber == 0) {
                     redisTemplate.opsForValue().set(key, postResponseModel, 100, TimeUnit.MINUTES);
                     logger.info("Cached data in Redis with key '{}'", key);
                 }
-            } catch (Exception e) {
-                logger.error("Redis write failed for key '{}': {}", key, e.getMessage());
-                // ✅ Don't crash if Redis write fails
-            }
+
 			return new ResponseObjectModel(postResponseModel, HttpStatus.OK);
 		} catch (Exception e) {
 			logger.error("getAllPost ", e);

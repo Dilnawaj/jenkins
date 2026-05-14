@@ -3,6 +3,7 @@ package com.codewithmd.blogger.bloggerappsapis.services.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -10,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import com.codewithmd.blogger.bloggerappsapis.config.ErrorConfig;
@@ -34,7 +36,11 @@ public class CategoryServiceImpl implements CategoryService {
 	@Autowired
 	private ModelMapper modelMapper;
 
-	private Logger logger = LoggerFactory.getLogger(this.getClass());
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	public ResponseModel createCategory(CategoryDto categoryDto, boolean isCategoryRequest) {
 		try {
@@ -113,10 +119,29 @@ public ResponseModel createCategoryRequest(Integer categoryId) {
 	public ResponseObjectModel getAllCategories() {
 		List<CategoryDto> categoryDto = new ArrayList<>();
 		try {
+            String key = "AllCategory";
+            ResponseObjectModel redisData =
+                    (ResponseObjectModel) redisTemplate.opsForValue().get(key);
+            logger.info("Redis cache hit for key '{}': {}", key, redisData != null);
+
+            if (redisData != null) {
+                logger.info("Returning cached data from Redis");
+                return new ResponseObjectModel(redisData, HttpStatus.OK);
+            }
 			List<Category> category = this.categoryRepo.findAllCategory();
 			categoryDto = category.stream().map(cat -> this.modelMapper.map(cat, CategoryDto.class))
 					.collect(Collectors.toList());
-			return new ResponseObjectModel(categoryDto, HttpStatus.OK);
+
+
+
+
+            ResponseObjectModel responseObjectModel = new ResponseObjectModel(categoryDto, HttpStatus.OK);
+
+
+                redisTemplate.opsForValue().set(key, responseObjectModel, 100, TimeUnit.MINUTES);
+                logger.info("Cached data in Redis with key '{}'", key);
+
+            return responseObjectModel;
 
 		} catch (Exception e) {
 			logger.error("getAllCategories ", e);
