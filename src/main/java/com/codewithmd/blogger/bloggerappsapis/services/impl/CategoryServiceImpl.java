@@ -36,11 +36,11 @@ public class CategoryServiceImpl implements CategoryService {
 
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	public ResponseModel createCategory(CategoryDto categoryDto) {
+	public ResponseModel createCategory(CategoryDto categoryDto, boolean isCategoryRequest) {
 		try {
 		
 			Category category = this.modelMapper.map(categoryDto, Category.class);
-			category.setIsCategoryRequest(true);
+			category.setIsCategoryRequest(isCategoryRequest);
 			this.categoryRepo.save(category);
 			return new ResponseModel(ErrorConfig.addMessage("Category"), HttpStatus.OK);
 		} catch (Exception e) {

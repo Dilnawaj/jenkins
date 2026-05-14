@@ -6,7 +6,7 @@ import com.codewithmd.blogger.bloggerappsapis.payloads.CategoryDto;
 
 public interface CategoryService {
 // create
-	ResponseModel createCategory(CategoryDto categoryDto);
+	ResponseModel createCategory(CategoryDto categoryDto, boolean isCategoryRequest);
 
 //update
 	ResponseModel updateCategory(CategoryDto categoryDto);

@@ -35,7 +35,8 @@ public class CategoryController {
 	@CrossOrigin
 	@PostMapping(produces = "application/json; charset=utf-8")
 	public ResponseEntity<Object> createCategory(@Valid @RequestBody CategoryDto categoryDto) {
-		ResponseModel createCategory = this.categoryService.createCategory(categoryDto);
+        boolean isCategoryRequest=true;
+		ResponseModel createCategory = this.categoryService.createCategory(categoryDto,isCategoryRequest);
 		return new ResponseEntity<>(createCategory.getResponse(), createCategory.getResponseCode());
 	}
 
