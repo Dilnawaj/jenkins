@@ -340,13 +340,13 @@ public class PostServiceImpl implements PostService {
 
             String key = "AllPost";
 
-                PostResponseModel redisData =
-                        (PostResponseModel) redisTemplate.opsForValue().get(key);
+            ResponseObjectModel redisData =
+                        (ResponseObjectModel) redisTemplate.opsForValue().get(key);
                 logger.info("Redis cache hit for key '{}': {}", key, redisData != null);
 
                 if (redisData != null && sortBy.equalsIgnoreCase("newest") && pageNumber == 0) {
                     logger.info("Returning cached data from Redis");
-                    return new ResponseObjectModel(redisData, HttpStatus.OK);
+                    return redisData;
                 }
 
 
@@ -375,14 +375,19 @@ public class PostServiceImpl implements PostService {
 			postResponseModel.setTotalElements(pagePosts.getTotalElements());
 			postResponseModel.setTotalPages(pagePosts.getTotalPages());
 			postResponseModel.setLastPage(pagePosts.isLast());
-                if (postResponseModel.getTotalElements() != 0L
-                        && sortBy.equalsIgnoreCase("newest")
-                        && pageNumber == 0) {
-                    redisTemplate.opsForValue().set(key, postResponseModel, 100, TimeUnit.MINUTES);
-                    logger.info("Cached data in Redis with key '{}'", key);
-                }
 
-			return new ResponseObjectModel(postResponseModel, HttpStatus.OK);
+
+
+
+            ResponseObjectModel responseObjectModel =  new ResponseObjectModel(postResponseModel, HttpStatus.OK);
+            if (postResponseModel.getTotalElements() != 0L
+                    && sortBy.equalsIgnoreCase("newest")
+                    && pageNumber == 0) {
+                redisTemplate.opsForValue().set(key, responseObjectModel , 100, TimeUnit.MINUTES);
+                logger.info("Cached data in Redis with key '{}'", key);
+            }
+
+            return responseObjectModel;
 		} catch (Exception e) {
 			logger.error("getAllPost ", e);
 			return new ResponseObjectModel(postResponseModel, HttpStatus.BAD_REQUEST);

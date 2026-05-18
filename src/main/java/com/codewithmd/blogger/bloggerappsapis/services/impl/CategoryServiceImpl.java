@@ -126,7 +126,7 @@ public ResponseModel createCategoryRequest(Integer categoryId) {
 
             if (redisData != null) {
                 logger.info("Returning cached data from Redis");
-                return new ResponseObjectModel(redisData, HttpStatus.OK);
+                return redisData;
             }
 			List<Category> category = this.categoryRepo.findAllCategory();
 			categoryDto = category.stream().map(cat -> this.modelMapper.map(cat, CategoryDto.class))
