@@ -3,7 +3,7 @@ package com.codewithmd.blogger.bloggerappsapis.admin.controllers;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.text.ParseException;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import com.codewithmd.blogger.bloggerappsapis.payloads.ShareEmail;
 import org.springframework.beans.factory.annotation.Autowired;

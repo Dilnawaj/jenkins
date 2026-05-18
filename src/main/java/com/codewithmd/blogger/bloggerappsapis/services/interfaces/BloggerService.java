@@ -5,7 +5,7 @@ import java.security.GeneralSecurityException;
 import java.text.ParseException;
 
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import com.codewithmd.blogger.bloggerappsapis.account.model.LoginModel;
 import com.codewithmd.blogger.bloggerappsapis.exception.ResponseModel;

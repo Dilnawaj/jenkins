@@ -3,7 +3,7 @@ package com.codewithmd.blogger.bloggerappsapis.admin.services;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import com.codewithmd.blogger.bloggerappsapis.account.model.LoginModel;
 import com.codewithmd.blogger.bloggerappsapis.admin.payloads.AdminDto;

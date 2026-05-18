@@ -1,6 +1,7 @@
 package com.codewithmd.blogger.bloggerappsapis.services.impl;
 
 import com.codewithmd.blogger.bloggerappsapis.config.BlogMetricsService;
+import com.codewithmd.blogger.bloggerappsapis.payloads.CategoryName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -23,6 +24,7 @@ import org.json.simple.JSONObject;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ai.chat.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
@@ -118,6 +120,11 @@ public class PostServiceImpl implements PostService {
 	
 	@Autowired
 	private CommentRepo commentRepo;
+
+
+    @Autowired
+    private  ChatClient chatClient;
+
 
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
@@ -997,4 +1004,25 @@ reportPost.setReportUserId(userId);
 reportPostRepo.save(reportPost);
 return new ResponseObjectModel("Success", HttpStatus.OK);
 	}
+
+    @Override
+    public String getCategoryName(String postTitle, String postContent) {
+
+        List<String> categories = categoryRepo.getAllCategoryName()
+                .stream()
+                .map(e -> e.getCategoryName())
+                .collect(Collectors.toList());
+
+        String categoryString = String.join(", ", categories);
+
+        System.out.println("categories: " + categoryString);
+
+        String question = "I am providing you a Blog's title and its content. " +
+                "Your job is to find the correct category among the following categories: " + categoryString + ". " +
+                "Return ONLY the category name, a single word, nothing else. " +
+                "Blog Title: " + postTitle + ". " +
+                "Blog Content: " + postContent;
+
+        return (String) chatClient.call(question);
+    }
 }

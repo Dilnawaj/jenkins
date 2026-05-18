@@ -2,8 +2,10 @@ package com.codewithmd.blogger.bloggerappsapis.controllers;
 
 import java.io.IOException;
 import java.io.InputStream;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
+
+import com.codewithmd.blogger.bloggerappsapis.payloads.*;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 
 import com.codewithmd.blogger.bloggerappsapis.config.BlogMetricsService;
 import org.slf4j.Logger;
@@ -30,10 +32,6 @@ import com.codewithmd.blogger.bloggerappsapis.config.ApiConstants;
 import com.codewithmd.blogger.bloggerappsapis.config.ErrorConfig;
 import com.codewithmd.blogger.bloggerappsapis.exception.ResponseModel;
 import com.codewithmd.blogger.bloggerappsapis.exception.ResponseObjectModel;
-import com.codewithmd.blogger.bloggerappsapis.payloads.PostDto;
-import com.codewithmd.blogger.bloggerappsapis.payloads.PostEnum;
-import com.codewithmd.blogger.bloggerappsapis.payloads.ShareEmail;
-import com.codewithmd.blogger.bloggerappsapis.payloads.SortDirEnum;
 import com.codewithmd.blogger.bloggerappsapis.services.impl.PostServiceImpl;
 import com.codewithmd.blogger.bloggerappsapis.services.interfaces.FileService;
 import com.codewithmd.blogger.bloggerappsapis.services.interfaces.PostService;
@@ -50,6 +48,7 @@ import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.*;
 import java.nio.file.*;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 @CrossOrigin(origins = "http://localhost:3000")
@@ -346,6 +345,20 @@ public class PostController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create zip file", e);
         }
     }
+
+
+
+
+    @GetMapping("/ask")
+    public String categoryGenerator(@RequestBody BlogAI blogAI) {
+       return this.postService.getCategoryName(blogAI.getTitle(),blogAI.getContent());
+
+    }
+
+
+
+
+
 
 //	@CrossOrigin
 //	@GetMapping(value = "/save/category/{categoryId}/user/{userId}", produces = "application/json; charset=utf-8")
