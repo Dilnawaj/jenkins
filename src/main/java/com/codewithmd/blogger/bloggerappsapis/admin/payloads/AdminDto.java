@@ -3,10 +3,10 @@ package com.codewithmd.blogger.bloggerappsapis.admin.payloads;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import com.codewithmd.blogger.bloggerappsapis.account.entity.Role;
 import com.codewithmd.blogger.bloggerappsapis.payloads.CommentDto;

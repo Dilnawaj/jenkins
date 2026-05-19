@@ -1,6 +1,6 @@
 package com.codewithmd.blogger.bloggerappsapis.controllers;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;

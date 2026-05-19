@@ -1,6 +1,6 @@
 package com.codewithmd.blogger.bloggerappsapis.services.interfaces;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 
 import com.codewithmd.blogger.bloggerappsapis.exception.ResponseModel;
 import com.codewithmd.blogger.bloggerappsapis.payloads.CommentDto;

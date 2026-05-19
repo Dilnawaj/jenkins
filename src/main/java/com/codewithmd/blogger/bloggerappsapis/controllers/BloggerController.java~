@@ -68,9 +68,12 @@ public class BloggerController {
 	@PostMapping(value = "/help", produces = "application/json; charset=utf-8", consumes = "application/json")
 	public ResponseEntity<Object> helpCenter(@RequestBody HelpCenterDto helpCenter) {
 		bloggerService.helpCenter(helpCenter);
-		return new ResponseEntity<>("Feedback successfully submitted", HttpStatus.OK);
+		return new ResponseEntity<>("Post Successfully Share with your Friends", HttpStatus.OK);
 	}
-
+//	public ResponseEntity<Object> sharePost(@RequestBody ShareEmail shareEmail) {
+//		this.postService.sharePost(shareEmail);
+//		return new ResponseEntity<>("Post Successfully Share with your Friends", HttpStatus.OK);
+//	}
 	@GetMapping(value = "/updatepasswordalert", produces = "application/json; charset=utf-8")
 	public ResponseEntity<Object> updatePasswordAlert(@RequestHeader Integer userId) {
 		ResponseModel responseModel = bloggerService.updatePasswordAlert(userId);

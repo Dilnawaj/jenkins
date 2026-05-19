@@ -66,5 +66,4 @@ public interface PostService {
 
 	ResponseObjectModel reportPostFeed(Long postId, Long userId);
 
-    String getCategoryName(String postTitle, String postContent);
 }

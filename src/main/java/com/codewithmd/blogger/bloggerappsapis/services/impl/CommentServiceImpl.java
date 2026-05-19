@@ -1,7 +1,7 @@
 package com.codewithmd.blogger.bloggerappsapis.services.impl;
 
 import java.util.Optional;
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

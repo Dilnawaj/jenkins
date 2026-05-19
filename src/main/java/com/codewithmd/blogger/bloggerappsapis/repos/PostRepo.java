@@ -3,7 +3,7 @@ package com.codewithmd.blogger.bloggerappsapis.repos;
 import java.util.List;
 import java.util.Optional;
 
-import jakarta.transaction.Transactional;
+import javax.transaction.Transactional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

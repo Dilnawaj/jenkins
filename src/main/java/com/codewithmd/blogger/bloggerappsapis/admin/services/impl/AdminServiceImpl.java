@@ -5,7 +5,7 @@ import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.Optional;
 
-import jakarta.transaction.Transactional;
+import javax.transaction.Transactional;
 
 import com.codewithmd.blogger.bloggerappsapis.payloads.UserDto;
 import com.codewithmd.blogger.bloggerappsapis.services.impl.UserServieImpl;
