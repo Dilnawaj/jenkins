@@ -6,6 +6,8 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.SqsClientBuilder;
 import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
@@ -35,6 +37,21 @@ public class S3Config {
             );
         }
 
+        return builder.build();
+    }
+    // ✅ ADD THIS NEW BEAN
+    @Bean
+    public SqsClient sqsClient() {
+        SqsClientBuilder builder = SqsClient.builder()
+                .region(Region.of(region));
+
+        if (accessKey != null && !accessKey.isEmpty()) {
+            builder.credentialsProvider(
+                    StaticCredentialsProvider.create(
+                            AwsBasicCredentials.create(accessKey, secretKey)
+                    )
+            );
+        }
         return builder.build();
     }
 }

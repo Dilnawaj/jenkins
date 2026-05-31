@@ -1,13 +1,14 @@
 package com.codewithmd.blogger.bloggerappsapis.services.interfaces;
 
 import java.io.IOException;
+import java.util.List;
 
-import org.springframework.scheduling.annotation.Async;
+import com.codewithmd.blogger.bloggerappsapis.payloads.*;
 
 import com.codewithmd.blogger.bloggerappsapis.exception.ResponseModel;
 import com.codewithmd.blogger.bloggerappsapis.exception.ResponseObjectModel;
-import com.codewithmd.blogger.bloggerappsapis.payloads.PostDto;
-import com.codewithmd.blogger.bloggerappsapis.payloads.ShareEmail;
+
+import javax.validation.Valid;
 
 public interface PostService {
 	// create
@@ -66,4 +67,9 @@ public interface PostService {
 
 	ResponseObjectModel reportPostFeed(Long postId, Long userId);
 
+    ResponseModel createBulkPost(@Valid PostDto postDto, Integer userId);
+
+    void uploadFiles(List<FileData> blogdata, Integer userId, Integer reqId);
+
+    BulkStatus getBulkFileStatus(Integer jobId, Integer userId);
 }

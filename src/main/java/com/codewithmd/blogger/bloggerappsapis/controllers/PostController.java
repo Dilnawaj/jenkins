@@ -6,6 +6,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import com.codewithmd.blogger.bloggerappsapis.config.BlogMetricsService;
+import com.codewithmd.blogger.bloggerappsapis.config.FileParserUtil;
+import com.codewithmd.blogger.bloggerappsapis.helper.JavaHelper;
+import com.codewithmd.blogger.bloggerappsapis.payloads.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +34,6 @@ import com.codewithmd.blogger.bloggerappsapis.config.ApiConstants;
 import com.codewithmd.blogger.bloggerappsapis.config.ErrorConfig;
 import com.codewithmd.blogger.bloggerappsapis.exception.ResponseModel;
 import com.codewithmd.blogger.bloggerappsapis.exception.ResponseObjectModel;
-import com.codewithmd.blogger.bloggerappsapis.payloads.PostDto;
-import com.codewithmd.blogger.bloggerappsapis.payloads.PostEnum;
-import com.codewithmd.blogger.bloggerappsapis.payloads.ShareEmail;
-import com.codewithmd.blogger.bloggerappsapis.payloads.SortDirEnum;
 import com.codewithmd.blogger.bloggerappsapis.services.impl.PostServiceImpl;
 import com.codewithmd.blogger.bloggerappsapis.services.interfaces.FileService;
 import com.codewithmd.blogger.bloggerappsapis.services.interfaces.PostService;
@@ -50,6 +50,9 @@ import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.*;
 import java.nio.file.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 @CrossOrigin(origins = "http://localhost:3000")
@@ -72,7 +75,12 @@ public class PostController {
     @Autowired
     private BlogMetricsService metricsService;
 
-	private Logger logger = LoggerFactory.getLogger(this.getClass());
+    @Autowired
+    private FileParserUtil fileParserUtil;
+
+
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@CrossOrigin
 	@PostMapping(value = "/user/{userId}/category/{categoryId}/post", produces = "application/json; charset=utf-8")
@@ -81,6 +89,62 @@ public class PostController {
 		ResponseModel createPost = this.postService.createPost(postDto, userId, categoryId);
 		return new ResponseEntity<>(createPost.getResponse(), createPost.getResponseCode());
 	}
+
+    @CrossOrigin
+    @PostMapping(
+            value = "/bulk/user/{userId}/post",
+            consumes = "multipart/form-data",
+            produces = "application/json; charset=utf-8"
+    )
+    public Map<String,String> createBulkPost(
+            @RequestParam("files") MultipartFile[] files,
+            @PathVariable Integer userId) throws Exception {
+
+        Integer reqId=   JavaHelper.getId();
+        List<FileData> fileData=   FileParserUtil.fetchMultipleFiles(files);
+        this.postService.uploadFiles(fileData,userId,reqId);
+        return Map.of(
+                "message", "Upload successful",
+                "reqId", reqId.toString()
+        );
+    }
+//    @CrossOrigin
+//    @PostMapping(
+//            value = "/bulk/user/{userId}/post",
+//            consumes = "multipart/form-data",
+//            produces = "application/json; charset=utf-8"
+//    )
+//    public Map<String,String> createBulkPost(
+//            @RequestParam("files") MultipartFile[] files,
+//            @PathVariable Integer userId) throws Exception {
+//
+//      Integer reqId=   JavaHelper.getId();
+//         List<FileData> fileData=   FileParserUtil.fetchMultipleFiles(files);
+//        this.postService.uploadFiles(fileData,userId,reqId);
+//       this.postService.readBlogsFromSqsAndThenParse(userId, reqId);
+//        return Map.of(
+//                "message", "Upload successful",
+//                "reqId", reqId.toString()
+//        );
+// }
+
+
+ @CrossOrigin
+ @GetMapping("/status/bulk/post/{jobId}/{userId}/status")
+ public ResponseEntity<BulkStatus> getFileStatus(@PathVariable Integer jobId, @PathVariable Integer userId)
+ {
+     return ResponseEntity.status(HttpStatus.OK).body(this.postService.getBulkFileStatus(jobId,userId));
+ }
+
+    @CrossOrigin
+    @GetMapping("status/user/{userId}/trackId/{trackId}")
+    public ResponseEntity<List<BlogAI>> trackAllFiles(
+            @PathVariable Integer userId,
+            @PathVariable Integer trackId) {  // trackId = jobId
+
+        //List<BlogAI> blogs = sqsConsumerService.readBlogsFromSqs(userId, trackId);
+        return ResponseEntity.ok(null);
+    }
 
 	@CrossOrigin
 	@GetMapping(value = "/{id}/{like}/{userId}", produces = "application/json; charset=utf-8")
@@ -225,15 +289,19 @@ public class PostController {
 
 	@CrossOrigin
 	@PostMapping(value = "/image/upload/{postId}", produces = "application/json; charset=utf-8")
-	public ResponseEntity<Object> uploadImage(@RequestParam("image") MultipartFile image, @PathVariable Integer postId,
+	public ResponseEntity<Object> uploadImage(@RequestParam(value="image",required = false) MultipartFile image, @PathVariable Integer postId,
 			@RequestParam ( required = false) String imageName) {
 		String fileName = null;
 		try {
+
             long start = System.currentTimeMillis();
 			ResponseObjectModel responseObjectModel = this.postService.getPostById(postId);
-			fileName = this.fileService.uploadImage(null, image, postId, imageName);
-			PostDto postDto = (PostDto) responseObjectModel.getResponse();
+            PostDto postDto = (PostDto) responseObjectModel.getResponse();
+			fileName = this.fileService.uploadImage(null, image, postId, imageName,postDto);
+            System.out.println("FileName Before "+ fileName);
+
 			postDto.setImageName(fileName);
+            System.out.println("FileName After "+ fileName);
 			this.postService.updatePost(postDto);
             metricsService.recordUploadTime(System.currentTimeMillis() - start);
 			return new ResponseEntity<>(ErrorConfig.updateMessage("Profile Image"), HttpStatus.OK);

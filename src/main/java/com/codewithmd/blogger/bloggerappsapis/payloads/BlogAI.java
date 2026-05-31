@@ -5,6 +5,9 @@ import lombok.Data;
 @Data
 public class BlogAI {
 
+
+    private String fileName;
+
     private String title;
 
     private String content;

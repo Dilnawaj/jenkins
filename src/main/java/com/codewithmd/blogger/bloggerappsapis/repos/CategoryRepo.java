@@ -1,6 +1,8 @@
 package com.codewithmd.blogger.bloggerappsapis.repos;
 
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -13,5 +15,9 @@ public interface CategoryRepo extends JpaRepository<Category, Integer> {
 	
 	@Query("select c from Category c where c.isCategoryRequest = true")
 	List<Category> findAllCategoryRequest();
+
+    @Query("select c from Category c where c.categoryTitle = ?1")
+    Optional<Category> findCategoryUsingName(String category);
+
 
 }

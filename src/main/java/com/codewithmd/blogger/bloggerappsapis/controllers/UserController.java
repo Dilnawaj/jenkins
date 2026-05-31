@@ -103,7 +103,7 @@ public class UserController {
 		String fileName = null;
 		try {
 			ResponseObjectModel responseObjectModel = this.userService.getUserById(userId);
-			fileName = this.fileService.uploadImage(null, image, userId, imageName);
+			fileName = this.fileService.uploadImage(null, image, userId, imageName,null);
 			UserDto userDto = (UserDto) responseObjectModel.getResponse();
 			userDto.setImageName(fileName);
 			this.userService.updateUser(userDto);
