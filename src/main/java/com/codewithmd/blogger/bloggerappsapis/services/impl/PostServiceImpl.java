@@ -165,9 +165,7 @@ public class PostServiceImpl implements PostService {
 
             Map<String, String> response = thirdPartyApi.getCategoryAndImageBySpringAI(
                     postDto.getTitle(), postDto.getContent());
-            System.out.println("Response is :"+ response);
-           String categoryName=response.get("category");
-            Category category = categoryRepo.findCategoryUsingName((!"".equals(categoryName) && categoryName!=null) ? categoryName:"Education").get();
+            Category category = categoryRepo.findCategoryUsingName(response.get("category")).get();
             postDto.setCategory(modelMapper.map(category, CategoryDto.class));
 
             ResponseModel responseModel = createPost(postDto, user.get(), category, response.get("image"));
