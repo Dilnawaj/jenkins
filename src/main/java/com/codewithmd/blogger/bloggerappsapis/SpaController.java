@@ -10,7 +10,7 @@ public class SpaController {
             "/login",
             "/signup",
             "/resetpassword",
-            "/{path:^(?!user|api|admin).*}/**"
+            "/{path:^(?!user|api|admin|ws).*}/**"  // ✅ added ws to exclusion
     })
     public String forward() {
         return "forward:/index.html";

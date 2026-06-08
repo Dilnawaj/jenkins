@@ -68,12 +68,14 @@ public class MyApplicationRunner implements ApplicationRunner {
         this.categoryService.createCategory(new CategoryDto(1,"Education","Content related to learning, courses, and academic topics"), false);
         this.categoryService.createCategory(new CategoryDto(1,"Lifestyle","Daily life tips, routines, and personal experiences"), false);
         this.categoryService.createCategory(new CategoryDto(1,"Technology","Tech news, gadgets, programming, and innovations"), false);
-        this.categoryService.createCategory(new CategoryDto(1,"Health & Fitness","Fitness tips, workouts, and health advice"), false);
+        this.categoryService.createCategory(new CategoryDto(1,"Health","Fitness tips, workouts, and health advice"), false);
+        this.categoryService.createCategory(new CategoryDto(1,"Fitness","Fitness tips, workouts, and health advice"), false);
+        this.categoryService.createCategory(new CategoryDto(1,"Entrepreneurship","Startups, business ideas, and entrepreneurship"), false);
         this.categoryService.createCategory(new CategoryDto(1,"Travel","Travel guides, destinations, and experiences"), false);
-        this.categoryService.createCategory(new CategoryDto(1,"Food & Recipes","Recipes, cooking tips, and food blogs"), false);
-        this.categoryService.createCategory(new CategoryDto(1,"Finance & Investment","Money management, investing, and finance tips"), false);
-        this.categoryService.createCategory(new CategoryDto(1,"Fashion & Beauty","Clothing, trends, and beauty tips"), false);
-        this.categoryService.createCategory(new CategoryDto(1,"Business & Entrepreneurship","Startups, business ideas, and entrepreneurship"), false);
+        this.categoryService.createCategory(new CategoryDto(1,"Food","Recipes, cooking tips, and food blogs"), false);
+        this.categoryService.createCategory(new CategoryDto(1,"Finance","Money management, investing, and finance tips"), false);
+        this.categoryService.createCategory(new CategoryDto(1,"Fashion","Clothing, trends, and beauty tips"), false);
+        this.categoryService.createCategory(new CategoryDto(1,"Business","Startups, business ideas, and entrepreneurship"), false);
         this.categoryService.createCategory(new CategoryDto(1,"Entertainment","Movies, music, and general entertainment content"), false);
 
 

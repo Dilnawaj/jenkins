@@ -30,6 +30,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import com.codewithmd.blogger.bloggerappsapis.exception.PostResponseModel;
@@ -99,6 +100,9 @@ public class PostServiceImpl implements PostService {
     @Autowired
     private JobStatusScheduler jobStatusScheduler;
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
 
@@ -138,14 +142,10 @@ public class PostServiceImpl implements PostService {
     }
 
     @Transactional
-    public void addSinglePost(BlogAI blogAI, Integer userId, Integer jobId) {
+    public void addSinglePost(BlogAI blogAI, Integer userId, Integer jobId, FileStatus fileStatus) {
         UploadFile uploadFile = uploadFileRepo.findById(jobId)
                 .orElseThrow(() -> new RuntimeException("UploadFile not found: " + jobId));
 
-        // ✅ Find FileStatus by jobId AND fileName — not just jobId
-        FileStatus fileStatus = fileStatusRepo
-                .findByFileIdAndFileName(uploadFile.getFile_id(), blogAI.getFileName())
-                .orElseThrow(() -> new RuntimeException("FileStatus not found for: " + blogAI.getFileName()));
 
         // ✅ Skip if already processed — prevents double counting
         if (fileStatus.getStatus() == FileTrack.SUCCESS
@@ -154,65 +154,49 @@ public class PostServiceImpl implements PostService {
             return;
         }
         try {
-            fileStatusRepo.save(changeFileStatus(fileStatus, FileTrack.PROCESSING));
+            fileStatusRepo.save(changeFileStatus(fileStatus, FileTrack.PROCESSING,""));
             uploadFileRepo.save(changeUploadStatus(uploadFile, FilesUploadTrack.PROCESSING));
+            pushBulkStatus(jobId, userId);
             logger.info("🔄 Job {} set to PROCESSING", jobId);  // ✅ add this
             PostDto postDto = modelMapper.map(blogAI, PostDto.class);
             Optional<User> user = userRepo.findById(userId);
-
 
             postDto.setUser(this.modelMapper.map(user.get(), UserDto.class));
 
             Map<String, String> response = thirdPartyApi.getCategoryAndImageBySpringAI(
                     postDto.getTitle(), postDto.getContent());
+
             Category category = categoryRepo.findCategoryUsingName(response.get("category")).get();
             postDto.setCategory(modelMapper.map(category, CategoryDto.class));
 
             ResponseModel responseModel = createPost(postDto, user.get(), category, response.get("image"));
 
             if (responseModel.getResponseCode() == HttpStatus.OK) {
-                fileStatusRepo.save(changeFileStatus(fileStatus, FileTrack.SUCCESS));
+                fileStatusRepo.save(changeFileStatus(fileStatus, FileTrack.SUCCESS,""));
                 uploadFileRepo.incrementSuccess(jobId);
+                pushBulkStatus(jobId, userId);
             }
 
         } catch (Exception e) {
             logger.error("❌ Failed to process blog: {}", blogAI.getTitle(), e);
-            fileStatusRepo.save(changeFileStatus(fileStatus, FileTrack.FAILED));
+            fileStatusRepo.save(changeFileStatus(fileStatus, FileTrack.FAILED,"Failed to Process Blog :: "+e.getMessage()));
             uploadFileRepo.incrementFailed(jobId);
+            pushBulkStatus(jobId, userId);
         }
 
         // ✅ After each file, check if all files done and update final status
-        jobStatusScheduler.scheduleFinalize(jobId);
+        jobStatusScheduler.scheduleFinalize(jobId,userId);
+        pushBulkStatus(jobId, userId);
     }
 
-    public void checkAndFinalizeJobStatus(Integer jobId) {
-        // ✅ Fresh read AFTER incrementSuccess/incrementFailed committed
-        UploadFile uploadFile = uploadFileRepo.findById(jobId).get();
-
-        int total   = uploadFile.getTotal_files();
-        int success = uploadFile.getProcessed_files();
-        int failed  = uploadFile.getFailed_files();
-
-        logger.info("📊 Job {} → total:{} success:{} failed:{}", jobId, total, success, failed);
-
-        if (success + failed >= total) {
-            FilesUploadTrack finalStatus = failed > 0
-                    ? FilesUploadTrack.PARTIAL_FAILED
-                    : FilesUploadTrack.COMPLETED;
-
-            // ✅ Only update STATUS — don't touch success/failed counts
-            uploadFileRepo.updateStatus(jobId, finalStatus);
-            logger.info("🏁 Job {} finalized → {}", jobId, finalStatus);
-        }
-    }
 
     private UploadFile changeUploadStatus(UploadFile uploadFile, FilesUploadTrack status) {
         uploadFile.setStatus(status);
         return uploadFile;
     }
 
-    private FileStatus changeFileStatus(FileStatus fileStatus, FileTrack track) {
-
+    public  FileStatus changeFileStatus(FileStatus fileStatus, FileTrack track,String errorMessage) {
+fileStatus.setError_message(errorMessage);
         fileStatus.setStatus(track);
         return fileStatus;
 
@@ -227,6 +211,7 @@ public class PostServiceImpl implements PostService {
         for (String fileName : fileNames) {
             FileStatus fileStatus = new FileStatus(uploadFile.getFile_id(), FileTrack.PENDING, fileName, "", 0, JavaHelper.getCurrentDate());
             fileStatusRepo.save(fileStatus);
+            pushBulkStatus(reqId, userId);
         }
         fileService.uploadToS3(blogData, userId, uploadFile.getFile_id());
 
@@ -1073,10 +1058,21 @@ public class PostServiceImpl implements PostService {
         return new ResponseObjectModel("Success", HttpStatus.OK);
     }
 
-    @Override
-    public ResponseModel createBulkPost(PostDto postDto, Integer userId) {
-        return null;
+    public void pushBulkStatus(Integer reqId, Integer userId) {
+
+        BulkStatus latestStatus =
+                getBulkFileStatus(reqId, userId);
+
+        messagingTemplate.convertAndSend(
+                "/topic/upload-status/" + reqId,
+                latestStatus
+        );
     }
 
 
+    public int getTotalFiles(Integer jobId) {
+        return uploadFileRepo.findById(jobId)
+                .map(UploadFile::getTotal_files)
+                .orElse(0);
+    }
 }

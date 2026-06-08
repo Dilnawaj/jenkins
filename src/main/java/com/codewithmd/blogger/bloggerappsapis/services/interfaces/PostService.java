@@ -67,9 +67,12 @@ public interface PostService {
 
 	ResponseObjectModel reportPostFeed(Long postId, Long userId);
 
-    ResponseModel createBulkPost(@Valid PostDto postDto, Integer userId);
-
     void uploadFiles(List<FileData> blogdata, Integer userId, Integer reqId);
 
     BulkStatus getBulkFileStatus(Integer jobId, Integer userId);
+
+
+
+
+
 }

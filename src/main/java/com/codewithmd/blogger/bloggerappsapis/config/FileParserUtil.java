@@ -9,7 +9,9 @@ import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.apache.poi.hwpf.HWPFDocument;
+import org.apache.poi.hwpf.extractor.WordExtractor;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayInputStream;
 import java.util.*;
 import java.util.zip.ZipEntry;
@@ -22,7 +24,6 @@ import java.util.zip.ZipInputStream;
 
 @Service
 public class FileParserUtil {
-
     /**
      * Accepts an array of MultipartFiles.
      * Each file can be:
@@ -37,7 +38,6 @@ public class FileParserUtil {
         for (MultipartFile file : files) {
             String fileName = file.getOriginalFilename();
             byte[] bytes = file.getBytes();
-
             if (fileName == null || fileName.isBlank()) {
                 throw new IllegalArgumentException("One of the uploaded files has no name.");
             }
@@ -100,6 +100,10 @@ public class FileParserUtil {
             rawText = extractFromDocx(bytes);
         } else if (fileName.endsWith(".txt")) {
             rawText = new String(bytes);
+        } else if (fileName.endsWith(".doc")) {
+            // ✅ Add .doc support using Apache POI HWPF
+            return parseDoc(fileName, bytes);
+
         } else if (fileName.endsWith(".pdf")) {
             rawText = extractFromPdf(bytes);
         } else {
@@ -111,7 +115,18 @@ public class FileParserUtil {
         return extractTitleAndContent(fileName, rawText);
     }
 
+    private static BlogAI parseDoc(String fileName, byte[] bytes) throws Exception {
+        try (HWPFDocument doc = new HWPFDocument(new ByteArrayInputStream(bytes))) {
+            WordExtractor extractor = new WordExtractor(doc);
+            String content = extractor.getText();
+            String title = fileName.replace(".doc", "").replace("_", " ");
 
+            BlogAI blog = new BlogAI();
+            blog.setTitle(title);
+            blog.setContent(content);
+            return blog;
+        }
+    }
 
     // ─────────────────────────────────────────────
     // .docx extractor (Apache POI)

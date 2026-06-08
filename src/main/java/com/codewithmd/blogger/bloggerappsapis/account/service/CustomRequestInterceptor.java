@@ -93,6 +93,7 @@ public class CustomRequestInterceptor implements HandlerInterceptor, Filter {
             if (method.equalsIgnoreCase("OPTIONS")
                     || requestUrl.contains("download-all")
                     || requestUrl.contains("getall/")
+                    || requestUrl.contains("ws/")
                     || requestUrl.contains("categ")
                     || requestUrl.contains("image/")
                     || requestUrl.contains("admin/account/")
